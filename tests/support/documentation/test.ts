@@ -1,4 +1,1 @@
-import { expect, test as base } from '@playwright/test';
-
-export const test = base.extend({});
-export { expect };
+export { expect, test } from '../../../src/test';

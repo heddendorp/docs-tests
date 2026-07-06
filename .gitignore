@@ -1,7 +1,8 @@
 node_modules/
+dist/
 .auth/
 generated-docs/
 playwright-report/
 test-results/
+*.tgz
 .DS_Store
-

@@ -1,2 +1,2 @@
-export { attachMarkdown } from './markdown';
-export { takeDocScreenshot } from './screenshot';
+export { attachMarkdown, attachPermissions } from '../../../src/markdown';
+export { takeDocScreenshot } from '../../../src/screenshot';

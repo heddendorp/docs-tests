@@ -1,7 +1,8 @@
-# Portable Playwright Documentation Project
+# Docs Tests
 
-This is a standalone template for generating user/admin documentation from
-Playwright journeys.
+Docs Tests generates user/admin documentation from Playwright journeys. The same
+flow that verifies a product workflow can attach Markdown, screenshots, and
+permission notes that a custom reporter writes to static docs content.
 
 Read the project context first:
 
@@ -10,14 +11,46 @@ Read the project context first:
 - [ARCHITECTURE.md](./ARCHITECTURE.md) explains the moving parts.
 - [QUALITY.md](./QUALITY.md) explains what good docs tests look like.
 
-## Install
+## Install in Another Project
+
+```bash
+npm install --save-dev docs-tests @playwright/test
+npx playwright install
+```
+
+Copy the starter files from `templates/basic` into the consuming app, or use the
+same imports in an existing Playwright project:
+
+```ts
+import { attachMarkdown, takeDocScreenshot } from 'docs-tests';
+import { expect, test } from 'docs-tests/test';
+```
+
+Add the documentation reporter to `playwright.config.ts`:
+
+```ts
+export default defineConfig({
+  reporter: [['html', { open: 'never' }], ['dot'], ['docs-tests/reporter']],
+});
+```
+
+## Develop This Package
 
 ```bash
 npm install
 npm run playwright:install
 ```
 
-## Run
+Useful local checks:
+
+```bash
+npm run typecheck
+npm run build
+npm run docs:list
+npm run package:check
+```
+
+## Run the Example
 
 ```bash
 npm run docs:test
@@ -29,7 +62,7 @@ Default output:
 - Images: `generated-docs/<guide-slug>/*.png`
 - Playwright HTML report: `playwright-report`
 
-## Publish to Another Docs App
+## Generate Docs for Another App
 
 ```bash
 DOCS_OUT_DIR=/path/to/docs/content \
@@ -40,6 +73,14 @@ npm run docs:test
 
 `DOCS_IMAGE_PUBLIC_PATH` controls the image URLs written into Markdown. If the
 images live beside `page.md`, omit it.
+
+## Public API
+
+- `docs-tests`: exports `attachMarkdown`, `attachPermissions`, and
+  `takeDocScreenshot`.
+- `docs-tests/test`: re-exports Playwright `test` and `expect`.
+- `docs-tests/reporter`: default Playwright reporter that writes generated docs.
+- `docs-tests/markdown` and `docs-tests/screenshot`: focused helper subpaths.
 
 ## Optional App Startup
 
@@ -76,3 +117,20 @@ Edit the selectors in `tests/setup/auth.setup.ts` to match the new app.
 4. Run `npm run typecheck` and `npm run docs:list`.
 5. Run `npm run docs:test` against the app.
 6. Point `DOCS_OUT_DIR` and `DOCS_IMG_OUT_DIR` at the target docs app.
+
+## Publish to npmjs
+
+Before publishing, choose the final package name and license. The current
+package name, `docs-tests`, was not present on the public npm registry during
+the latest readiness check.
+
+```bash
+npm run typecheck
+npm run build
+npm run package:check
+npm publish --access public
+```
+
+The package uses Playwright's documented custom reporter, project dependency,
+and storage-state authentication patterns. npm packaging follows the documented
+`package.json` fields, `exports`, `files`, and `npm publish` flow.

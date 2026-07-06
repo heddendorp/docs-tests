@@ -1,14 +1,61 @@
 {
   "name": "docs-tests",
   "version": "0.1.0",
-  "private": true,
+  "description": "Playwright helpers and reporter for generating Markdown documentation from verified browser journeys.",
+  "license": "UNLICENSED",
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./markdown": {
+      "types": "./dist/markdown.d.ts",
+      "import": "./dist/markdown.js"
+    },
+    "./reporter": {
+      "types": "./dist/reporter.d.ts",
+      "import": "./dist/reporter.js"
+    },
+    "./screenshot": {
+      "types": "./dist/screenshot.d.ts",
+      "import": "./dist/screenshot.js"
+    },
+    "./test": {
+      "types": "./dist/test.d.ts",
+      "import": "./dist/test.js"
+    }
+  },
+  "files": [
+    "dist",
+    "templates",
+    "ARCHITECTURE.md",
+    "CONCEPT.md",
+    "PRODUCT.md",
+    "QUALITY.md"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "clean": "rm -rf dist generated-docs playwright-report test-results",
     "docs:list": "playwright test --project=docs --list",
     "docs:publish": "DOCS_OUT_DIR=../docs/content DOCS_IMG_OUT_DIR=../docs/public/docs DOCS_IMAGE_PUBLIC_PATH=/docs playwright test --project=docs",
     "docs:test": "playwright test --project=docs",
+    "package:check": "npm pack --dry-run",
     "playwright:install": "playwright install",
+    "prepack": "npm run build",
     "typecheck": "tsc -p tsconfig.json"
+  },
+  "peerDependencies": {
+    "@playwright/test": ">=1.61.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",

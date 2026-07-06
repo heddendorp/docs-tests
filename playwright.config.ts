@@ -12,7 +12,7 @@ export default defineConfig({
     : [
         ['html', { open: 'never' }],
         ['dot'],
-        ['./tests/support/documentation/reporter.ts'],
+        ['./src/reporter.ts'],
       ],
   retries: process.env['CI'] ? 1 : 0,
   testDir: './tests',

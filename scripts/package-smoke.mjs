@@ -8,15 +8,19 @@ const projectRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '..',
 );
-const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+const npmCli = process.env.npm_execpath;
+if (!npmCli) throw new Error('npm_execpath is required to run the package smoke test.');
 const temporaryRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'docs-tests-pack-'));
+
+function runNpm(args, options) {
+  return execFileSync(process.execPath, [npmCli, ...args], options);
+}
 
 try {
   const packDirectory = path.join(temporaryRoot, 'pack');
   fs.mkdirSync(packDirectory, { recursive: true });
   const packed = JSON.parse(
-    execFileSync(
-      npm,
+    runNpm(
       ['pack', '--json', '--pack-destination', packDirectory],
       { cwd: projectRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'] },
     ),
@@ -45,8 +49,7 @@ try {
     path.join(consumerDirectory, 'package.json'),
     JSON.stringify({ private: true, type: 'module' }),
   );
-  execFileSync(
-    npm,
+  runNpm(
     [
       'install',
       '--ignore-scripts',

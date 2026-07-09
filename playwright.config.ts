@@ -23,6 +23,10 @@ export default defineConfig({
   },
   projects: [
     {
+      name: 'unit',
+      testMatch: /unit\/.*\.spec\.ts$/,
+    },
+    {
       name: 'auth-setup',
       testMatch: /setup\/auth\.setup\.ts$/,
       use: devices['Desktop Chrome'],

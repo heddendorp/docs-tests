@@ -1,7 +1,10 @@
 import type { TestInfo } from '@playwright/test';
 
+import { DOCS_TESTS_ATTACHMENTS, attachPermissionsEvent } from './events.js';
+import type { PermissionNote } from './schema.js';
+
 export async function attachMarkdown(testInfo: TestInfo, markdown: string) {
-  await testInfo.attach('markdown', {
+  await testInfo.attach(DOCS_TESTS_ATTACHMENTS.markdown, {
     body: markdown.trim(),
     contentType: 'text/markdown',
   });
@@ -9,10 +12,7 @@ export async function attachMarkdown(testInfo: TestInfo, markdown: string) {
 
 export async function attachPermissions(
   testInfo: TestInfo,
-  permissions: readonly string[],
+  permissions: readonly (string | PermissionNote)[],
 ) {
-  await testInfo.attach('permissions', {
-    body: permissions.join('\n'),
-    contentType: 'text/plain',
-  });
+  await attachPermissionsEvent(testInfo, permissions);
 }

@@ -61,16 +61,15 @@ Once those are stable, add recovery, unavailable, and permission-denied states.
 
 Short term:
 
-- add a manifest with title, slug, source file, screenshots, and tags
 - add app-specific fixtures for deterministic data
 - add a publish command for the target documentation app
+- establish a drift check for committed generated output
 
 Medium term:
 
 - add accessibility scans to docs flows
 - add aria snapshots for key screens
 - split draft and publish output modes in CI
-- add docs drift checks for committed generated output
 
 Long term:
 

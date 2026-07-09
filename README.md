@@ -2,7 +2,10 @@
 
 Docs Tests generates user/admin documentation from Playwright journeys. The same
 flow that verifies a product workflow can attach Markdown, screenshots, and
-permission notes that a custom reporter writes to static docs content.
+permission notes that a custom reporter compiles into portable Markdown and a
+versioned documentation artifact.
+
+Requires Node.js 24 or later and Playwright `>=1.61.0 <2`.
 
 Read the project context first:
 
@@ -22,7 +25,7 @@ Copy the starter files from `templates/basic` into the consuming app, or use the
 same imports in an existing Playwright project:
 
 ```ts
-import { attachMarkdown, takeDocScreenshot } from 'docs-tests';
+import { attachGuide, attachMarkdown, takeDocScreenshot } from 'docs-tests';
 import { expect, test } from 'docs-tests/test';
 ```
 
@@ -45,9 +48,11 @@ Useful local checks:
 
 ```bash
 npm run typecheck
+npm test
 npm run build
 npm run docs:list
 npm run package:check
+npm run package:smoke
 ```
 
 ## Run the Example
@@ -60,6 +65,8 @@ Default output:
 
 - Markdown pages: `generated-docs/<guide-slug>/page.md`
 - Images: `generated-docs/<guide-slug>/*.png`
+- Artifact bundle: `generated-docs/docs-tests.bundle.json`
+- Generated-file ownership manifest: `generated-docs/.docs-tests-manifest.json`
 - Playwright HTML report: `playwright-report`
 
 ## Generate Docs for Another App
@@ -74,13 +81,71 @@ npm run docs:test
 `DOCS_IMAGE_PUBLIC_PATH` controls the image URLs written into Markdown. If the
 images live beside `page.md`, omit it.
 
+## Output Safety
+
+The reporter stages attachments and writes final files only when the complete
+Playwright run passes. Existing output is preserved by default. It refuses to
+overwrite unowned files and does not prune files it cannot prove it generated.
+
+For a complete, unfiltered docs run, manifest-owned cleanup can remove stale
+files from the previous generated output:
+
+```ts
+export default defineConfig({
+  reporter: [
+    ['docs-tests/reporter', { clean: 'manifest-owned', fullRun: true }],
+  ],
+});
+```
+
+`fullRun: true` is a deliberate assertion that this command covers the whole
+documentation suite. Publishing is refused for filters, targeted test files,
+`--only-changed`, failed-test reruns, and shards. Cleanup only removes paths
+from a matching previous manifest whose bytes still match the recorded SHA-256
+hash. Use it only in a dedicated full-run command. Publishing replaces
+individual files atomically; it does not claim an atomic transaction across two
+arbitrary output roots.
+
 ## Public API
 
-- `docs-tests`: exports `attachMarkdown`, `attachPermissions`, and
-  `takeDocScreenshot`.
+- `docs-tests`: exports `attachGuide`, `attachMarkdown`, `attachPermissions`,
+  `takeDocScreenshot`, `takeScreenshot`, and the corresponding public metadata
+  and screenshot option types.
+- `takeScreenshot(testInfo, locator, page, caption?)` is a compatibility alias
+  for existing Evorto-style guides and is also exported from
+  `docs-tests/reporter`.
 - `docs-tests/test`: re-exports Playwright `test` and `expect`.
 - `docs-tests/reporter`: default Playwright reporter that writes generated docs.
 - `docs-tests/markdown` and `docs-tests/screenshot`: focused helper subpaths.
+
+Use explicit guide metadata for stable identity and routing. The older
+`test.describe(...)` grouping remains a compatibility fallback. Attach the same
+guide metadata in every test that contributes a section to that guide; a
+`test.beforeEach` hook is convenient for shared metadata.
+
+```ts
+await attachGuide(testInfo, {
+  id: 'billing-overview',
+  slug: 'guides/billing/overview',
+  title: 'Manage billing',
+  tags: ['billing'],
+});
+
+await attachMarkdown(testInfo, 'Review invoices before exporting.');
+await takeDocScreenshot(testInfo, page, page.getByRole('main'), {
+  alt: 'Billing overview',
+  caption: 'Review invoices before exporting.',
+  fullPage: true,
+  redactions: [
+    { locator: page.getByText(/customer@example\.com/), reason: 'Customer email' },
+  ],
+});
+```
+
+The default renderer emits standard Markdown only. `docs-tests.bundle/v1alpha1`
+contains guide metadata, source references, asset hashes, and redaction reasons
+for consumers that need structured data. The artifact and attachment envelopes
+are alpha contracts during `0.x`.
 
 ## Optional App Startup
 
@@ -114,20 +179,57 @@ Edit the selectors in `tests/setup/auth.setup.ts` to match the new app.
 1. Replace the example guide in `tests/docs/getting-started.doc.ts`.
 2. Adapt `tests/setup/auth.setup.ts` if the app requires login.
 3. Add deterministic test data setup for the first real product workflow.
-4. Run `npm run typecheck` and `npm run docs:list`.
+4. Run `npm run typecheck`, `npm test`, and `npm run docs:list`.
 5. Run `npm run docs:test` against the app.
 6. Point `DOCS_OUT_DIR` and `DOCS_IMG_OUT_DIR` at the target docs app.
+7. Run `npm run package:smoke` before publishing a package change.
 
-## Publish to npmjs
+## Release Management
 
-Before publishing, choose the final package name and license. The current
-package name, `docs-tests`, was not present on the public npm registry during
-the latest readiness check.
+Knope Bot manages versioning, changelog entries, and GitHub release pull
+requests through [`knope.toml`](./knope.toml). Install
+[Knope Bot](https://github.com/marketplace/knope-bot) for only this repository
+to enable it. A documented change is either a Knope change file or a
+Conventional Commit; Knope Bot then maintains a `knope/release` pull request.
+Merging that pull request creates the GitHub release and runs
+[`publish.yml`](./.github/workflows/publish.yml).
+
+The publish workflow uses npm Trusted Publishing rather than a long-lived npm
+token. The package is MIT licensed. Before enabling the first automated
+release, make the repository public, publish the initial `0.1.0` release, and
+configure npm Trusted Publishing for `heddendorp/docs-tests`,
+`.github/workflows/publish.yml`, and the `npm-publish` environment. Require the
+Knope and Package checks before merging to `main`.
+
+After the initial publish, npm 11.5.1 or later can configure the trusted
+publisher. Check or upgrade the npm CLI in the active Node installation first:
+
+```bash
+npm --version
+npm install --global npm@^11.15.0 # Only needed when npm is older than 11.5.1.
+```
+
+Then configure the trusted publisher:
+
+```bash
+npm trust github docs-tests \
+  --file publish.yml \
+  --repo heddendorp/docs-tests \
+  --env npm-publish \
+  --allow-publish
+```
+
+## Bootstrap Publishing
+
+The MIT license is included. The current package name, `docs-tests`, was not
+present on the public npm registry when this repository was prepared; verify
+availability again immediately before publishing.
 
 ```bash
 npm run typecheck
 npm run build
 npm run package:check
+npm run package:smoke
 npm publish --access public
 ```
 

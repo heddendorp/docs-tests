@@ -1,0 +1,7 @@
+[package]
+versioned_files = ["package.json", "package-lock.json"]
+changelog = "CHANGELOG.md"
+
+[bot.releases]
+enabled = true
+pull_request.title = "chore(release): v$version"

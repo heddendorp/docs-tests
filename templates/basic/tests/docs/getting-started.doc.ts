@@ -1,9 +1,15 @@
-import { attachMarkdown, takeDocScreenshot } from 'docs-tests';
+import { attachGuide, attachMarkdown, takeDocScreenshot } from 'docs-tests';
 import { expect, test } from 'docs-tests/test';
 
 test.describe('Getting started', () => {
   test('Open the main surface', async ({ page }, testInfo) => {
     await page.goto('/');
+
+    await attachGuide(testInfo, {
+      id: 'getting-started',
+      slug: 'getting-started',
+      title: 'Getting started',
+    });
 
     await attachMarkdown(
       testInfo,
@@ -17,6 +23,9 @@ Replace this prose with the first workflow your users or admins should learn.
 
     const main = page.getByRole('main').first();
     await expect(main).toBeVisible();
-    await takeDocScreenshot(testInfo, page, main, 'Main product surface');
+    await takeDocScreenshot(testInfo, page, main, {
+      alt: 'Main product surface',
+      caption: 'Main product surface',
+    });
   });
 });

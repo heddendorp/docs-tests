@@ -1,25 +1,62 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
+import { DOCS_TESTS_ATTACHMENTS } from '../events.js';
+import type { GuideMetadata, PermissionNote } from '../schema.js';
+
 export const DOCUMENTATION_ATTACHMENT_NAMES = new Set([
   'image',
   'image-caption',
   'markdown',
   'permissions',
+  DOCS_TESTS_ATTACHMENTS.guide,
+  DOCS_TESTS_ATTACHMENTS.imageMetadata,
+  DOCS_TESTS_ATTACHMENTS.markdown,
+  DOCS_TESTS_ATTACHMENTS.permissions,
 ]);
+
+export const DOCS_TESTS_OUTPUT_MANIFEST_FILE = '.docs-tests-manifest.json';
+export const DOCS_TESTS_BUNDLE_FILE = 'docs-tests.bundle.json';
 
 export const MAX_FOLDER_NAME_LENGTH = 64;
 
 export type TestSection = {
-  content: string[];
+  blocks: DocumentationBlock[];
+  guide?: GuideMetadata;
   line: number;
+  source: SourceTestReference;
   title: string;
+};
+
+export type SourceTestReference = {
+  file?: string;
+  line?: number;
+  titlePath?: string[];
+};
+
+export type DocumentationBlock =
+  | { markdown: string; type: 'markdown' }
+  | { permissions: PermissionNote[]; type: 'permissions' }
+  | {
+      alt: string;
+      asset: DocumentationAsset;
+      caption?: string;
+      redactions?: readonly { reason?: string }[];
+      type: 'image';
+    };
+
+export type DocumentationAsset = {
+  id: string;
+  integrity: string;
+  mediaType: string;
+  outputPath: string;
 };
 
 export type TestGroupDocument = {
   describeTitle?: string;
   filePath?: string;
   folderName: string;
+  guide?: GuideMetadata;
   sections: TestSection[];
 };
 
@@ -29,6 +66,13 @@ export type TestGroupInfo = {
   folderName: string;
   groupKey: string;
 };
+
+export function isDocumentationAttachmentName(name: string) {
+  return (
+    DOCUMENTATION_ATTACHMENT_NAMES.has(name) ||
+    name.startsWith(DOCS_TESTS_ATTACHMENTS.imagePrefix)
+  );
+}
 
 export function readDocumentationEnvironment() {
   const docsOutputDirectory = path.resolve(

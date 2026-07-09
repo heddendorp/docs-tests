@@ -12,6 +12,7 @@ A docs flow is ready when:
 - it uses stable user-facing locators where possible
 - it avoids fuzzy data discovery
 - screenshots are captured only after stable UI states
+- screenshots mask sensitive data before capture
 - generated Markdown reads like product documentation, not a test log
 - traces are available on retry for debugging
 
@@ -45,6 +46,7 @@ Prefer:
 - forms with representative fields
 - confirmation/success states
 - permission or unavailable states when they matter
+- `redactions` with a concise reason when sensitive content must be hidden
 
 Avoid:
 
@@ -52,14 +54,18 @@ Avoid:
 - transient hover/focus states unless they are the subject
 - screenshots with test/debug UI visible
 - redundant screenshots that do not teach anything new
+- captions or alt text that expose private data
 
 ## CI Guidance
 
 Recommended CI jobs:
 
 - `npm run typecheck`
+- `npm test`
 - `npm run docs:list`
 - `npm run docs:test`
+- `npm run package:check`
+- `npm run package:smoke`
 - optional generated-docs drift check when docs output is committed
 
 If generated docs are committed, run the docs tests and fail the job when

@@ -41,7 +41,8 @@ Readers of the generated documentation may be:
 3. Assertions prove the documented behavior is still true.
 4. The spec attaches Markdown explanation at the right moments.
 5. The spec captures screenshots from stable UI states.
-6. The documentation reporter writes one generated Markdown page per guide.
+6. The documentation reporter writes one portable Markdown page per guide and
+   a versioned artifact bundle for structured consumers.
 7. A publish command points the output at a docs site or content repository.
 
 ## Product Principles
@@ -52,7 +53,12 @@ Readers of the generated documentation may be:
 - **Feature-area organization**: group guides by the surface users are trying to
   use, not only by persona.
 - **Portable by default**: no dependency on a specific frontend framework,
-  database, auth provider, or docs renderer.
+  database, auth provider, or docs renderer; default Markdown contains no
+  renderer-specific directives.
+- **Safe generated output**: generated-file cleanup must prove ownership and
+  must not overwrite or delete hand-authored material.
+- **Privacy-aware screenshots**: sensitive UI can be masked with documented
+  redaction reasons instead of relying on post-processing.
 - **Draft and publish modes**: local generation should be cheap and ignored;
   publishing should be explicit.
 - **Useful failure evidence**: docs tests should keep traces on retry so broken

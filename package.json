@@ -2,7 +2,23 @@
   "name": "docs-tests",
   "version": "0.1.0",
   "description": "Playwright helpers and reporter for generating Markdown documentation from verified browser journeys.",
-  "license": "UNLICENSED",
+  "license": "MIT",
+  "homepage": "https://github.com/heddendorp/docs-tests#readme",
+  "bugs": {
+    "url": "https://github.com/heddendorp/docs-tests/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/heddendorp/docs-tests.git"
+  },
+  "keywords": [
+    "documentation",
+    "e2e",
+    "markdown",
+    "playwright",
+    "reporter",
+    "testing"
+  ],
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -32,16 +48,18 @@
     "dist",
     "templates",
     "ARCHITECTURE.md",
+    "CHANGELOG.md",
     "CONCEPT.md",
     "PRODUCT.md",
     "QUALITY.md"
   ],
   "sideEffects": false,
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
@@ -50,12 +68,15 @@
     "docs:publish": "DOCS_OUT_DIR=../docs/content DOCS_IMG_OUT_DIR=../docs/public/docs DOCS_IMAGE_PUBLIC_PATH=/docs playwright test --project=docs",
     "docs:test": "playwright test --project=docs",
     "package:check": "npm pack --dry-run",
+    "package:smoke": "node scripts/package-smoke.mjs",
     "playwright:install": "playwright install",
     "prepack": "npm run build",
+    "test": "npm run test:unit",
+    "test:unit": "playwright test --project=unit --reporter=list",
     "typecheck": "tsc -p tsconfig.json"
   },
   "peerDependencies": {
-    "@playwright/test": ">=1.61.0"
+    "@playwright/test": ">=1.61.0 <2"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",
